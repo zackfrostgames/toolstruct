@@ -52,6 +52,18 @@ function initializeEventListeners() {
         recalculateBtn.addEventListener('click', scrollToForm);
     }
 
+    // Cement calculator form
+    const cementForm = document.getElementById('cementForm');
+    if (cementForm) {
+        cementForm.addEventListener('submit', calculateCementSystem);
+    }
+
+    // Recalculate button for cement
+    const recalculateCementBtn = document.getElementById('recalculateCementBtn');
+    if (recalculateCementBtn) {
+        recalculateCementBtn.addEventListener('click', scrollToCementForm);
+    }
+
     // Close mobile menu when clicking on a link
     navLinks.forEach(link => {
         link.addEventListener('click', closeMobileMenu);
@@ -283,6 +295,80 @@ function calculateSolarSystem(event) {
 function scrollToForm() {
     const form = document.getElementById('solarForm');
     form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/**
+ * Scrolls back to the cement calculator form
+ * Called when user clicks "Recalculate" button
+ */
+function scrollToCementForm() {
+    const form = document.getElementById('cementForm');
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/* ============================================================================
+   7. CEMENT CALCULATOR LOGIC
+   ============================================================================ */
+
+/**
+ * Calculates cement requirements based on concrete dimensions
+ * @param {Event} event - The form submission event
+ */
+function calculateCementSystem(event) {
+    event.preventDefault();
+
+    // Get input values from form
+    const length = parseFloat(document.getElementById('concreteLength').value) || 0;
+    const width = parseFloat(document.getElementById('concreteWidth').value) || 0;
+    const thicknessCm = parseFloat(document.getElementById('concreteThickness').value) || 0;
+
+    // Validate inputs
+    if (length <= 0 || width <= 0 || thicknessCm <= 0) {
+        alert('Please enter valid measurements for all fields');
+        return;
+    }
+
+    // =====================================================================
+    // CALCULATION ENGINE
+    // =====================================================================
+
+    // Convert thickness from cm to meters
+    const thicknessM = thicknessCm / 100;
+
+    // Calculate area (m²)
+    const area = length * width;
+
+    // Calculate volume (m³)
+    const volume = area * thicknessM;
+
+    // Calculate cement bags needed
+    // 1 cubic meter requires approximately 7 bags of 50kg cement
+    const bagsPerCubicMeter = 7;
+    const cementBagsNeeded = Math.ceil(volume * bagsPerCubicMeter);
+
+    // Calculate total weight of cement (kg)
+    const cementWeightKg = cementBagsNeeded * 50;
+
+    // =====================================================================
+    // DISPLAY RESULTS
+    // =====================================================================
+
+    // Update result values in the DOM
+    document.getElementById('concreteVolume').textContent = volume.toFixed(3);
+    document.getElementById('cementBagsNeeded').textContent = cementBagsNeeded;
+    document.getElementById('concreteArea').textContent = area.toFixed(2);
+    document.getElementById('concreteThicknessDisplay').textContent = thicknessCm;
+    document.getElementById('volumeCalculation').textContent = `${length} × ${width} × ${thicknessM}m`;
+    document.getElementById('cementWeight').textContent = cementWeightKg.toLocaleString('en-ZA');
+
+    // Show results container
+    const resultsContainer = document.getElementById('cementResultsContainer');
+    resultsContainer.style.display = 'block';
+
+    // Smooth scroll to results
+    setTimeout(() => {
+        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 /* ============================================================================

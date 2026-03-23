@@ -179,14 +179,111 @@
             </div>
         </section>
 
-        <!-- CONSTRUCTION TOOLS PAGE (Placeholder) -->
+        <!-- CONSTRUCTION TOOLS PAGE - CEMENT CALCULATOR -->
         <section id="constructionPage" class="page">
-            <div class="placeholder-container">
-                <div class="placeholder-content">
-                    <div class="placeholder-icon">🏗️</div>
-                    <h1>Construction Tools</h1>
-                    <p>Coming soon! We're building powerful tools for construction and material planning.</p>
-                    <button class="btn btn-primary" onclick="navigateToPage('home')">Back to Home</button>
+            <div class="calculator-container">
+                <div class="calculator-header">
+                    <h1>Cement Calculator</h1>
+                    <p>Calculate how many cement bags you need for your concrete project</p>
+                </div>
+
+                <!-- Input Form -->
+                <form class="calculator-form" id="cementForm">
+                    <!-- Length, Width, Thickness Inputs -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="concreteLength">Length (meters)</label>
+                            <div class="input-wrapper">
+                                <input 
+                                    type="number" 
+                                    id="concreteLength" 
+                                    placeholder="e.g., 5"
+                                    min="0.1"
+                                    max="100"
+                                    step="0.1"
+                                    value="5"
+                                    class="input-field"
+                                >
+                            </div>
+                            <small>Length of your concrete area</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="concreteWidth">Width (meters)</label>
+                            <div class="input-wrapper">
+                                <input 
+                                    type="number" 
+                                    id="concreteWidth" 
+                                    placeholder="e.g., 4"
+                                    min="0.1"
+                                    max="100"
+                                    step="0.1"
+                                    value="4"
+                                    class="input-field"
+                                >
+                            </div>
+                            <small>Width of your concrete area</small>
+                        </div>
+                    </div>
+
+                    <!-- Thickness Input (Full Width) -->
+                    <div class="form-group">
+                        <label for="concreteThickness">Thickness (centimeters)</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="number" 
+                                id="concreteThickness" 
+                                placeholder="e.g., 10"
+                                min="1"
+                                max="50"
+                                step="0.5"
+                                value="10"
+                                class="input-field"
+                            >
+                        </div>
+                        <small>Depth of your concrete slab (typical: 7-15cm)</small>
+                    </div>
+
+                    <!-- Calculate Button -->
+                    <button type="submit" class="btn btn-primary btn-full">Calculate Cement Needed</button>
+                </form>
+
+                <!-- Results Section -->
+                <div class="results-container" id="cementResultsContainer" style="display: none;">
+                    <h2>Cement Requirements</h2>
+                    
+                    <div class="results-grid">
+                        <!-- Result 1: Total Volume -->
+                        <div class="result-card">
+                            <div class="result-label">Total Volume</div>
+                            <div class="result-value" id="concreteVolume">--</div>
+                            <div class="result-unit">m³</div>
+                            <p class="result-description">Cubic meters of concrete</p>
+                        </div>
+
+                        <!-- Result 2: Cement Bags Needed -->
+                        <div class="result-card">
+                            <div class="result-label">Cement Bags Required</div>
+                            <div class="result-value" id="cementBagsNeeded">--</div>
+                            <div class="result-unit">bags (50kg)</div>
+                            <p class="result-description">Standard 50kg bags</p>
+                        </div>
+                    </div>
+
+                    <!-- Summary Card -->
+                    <div class="summary-card">
+                        <h3>Project Details</h3>
+                        <div class="summary-details">
+                            <p><strong>Area:</strong> <span id="concreteArea">--</span> m²</p>
+                            <p><strong>Thickness:</strong> <span id="concreteThicknessDisplay">--</span> cm</p>
+                            <p><strong>Volume Calculation:</strong> <span id="volumeCalculation">--</span></p>
+                            <p><strong>Total Weight of Cement:</strong> <span id="cementWeight">--</span> kg</p>
+                        </div>
+                        <div class="estimation-note">
+                            <p><strong>💡 Tip:</strong> Allow an extra 5-10% for spillage and settling. For mixing, you'll also need sand and gravel in proper proportions.</p>
+                        </div>
+                        <button class="btn btn-secondary" id="recalculateCementBtn">Recalculate</button>
+                    </div>
                 </div>
             </div>
         </section>
