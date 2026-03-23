@@ -4,6 +4,35 @@
    ============================================================================ */
 
 /* ============================================================================
+   0. BUSINESS CONFIGURATION
+   ============================================================================
+   Centralized configuration for all calculators. Update these values
+   directly without modifying calculation logic.
+   ============================================================================ */
+
+const CALCULATOR_CONFIG = {
+    // CEMENT CALCULATOR SETTINGS
+    cement: {
+        bagWeightKg: 50,                    // Standard cement bag weight in kg
+        minBagsPerM3: 8,                    // Minimum bags per cubic meter (light mix)
+        maxBagsPerM3: 10,                   // Maximum bags per cubic meter (heavy duty mix)
+        thicknessCmToMeters: 0.01,          // Conversion factor: cm to meters
+    },
+    
+    // SOLAR CALCULATOR SETTINGS
+    solar: {
+        electricityRateZAR: 3.75,           // ZAR per kWh (2026 estimate)
+        daysPerMonth: 30,                   // Days used for monthly calculations
+        peakSunHours: 4.5,                  // Average peak sun hours in South Africa
+        efficiencyBuffer: 1.25,             // 25% buffer for losses & cloudy days
+        panelWattage: 400,                  // Standard residential panel wattage
+        wattagePerKw: 1000,                 // Watts per kilowatt
+        panelFlexibilityRange: 2,           // ±2 panels for flexibility in recommendations
+        dCtoACConversionLoss: 1.1,          // Account for DC to AC conversion ~10% loss
+    }
+};
+
+/* ============================================================================
    1. INITIALIZATION & DOM READY
    ============================================================================ */
 
@@ -176,35 +205,33 @@ function calculateSolarSystem(event) {
     if (monthlyKwh > 0) {
         monthlyConsumption = monthlyKwh;
     } else {
-        // Otherwise, calculate from bill
-        // South African electricity rate for March 2026
-        // Eskom rates increase annually; this reflects recent tariff increases
-        // Early 2025: R3.02/kWh → March 2026 estimate: R3.50-4.00/kWh
-        const electricityRate = 3.75; // ZAR per kWh (2026 conservative estimate)
+        // Otherwise, calculate from bill using configured electricity rate
+        const electricityRate = CALCULATOR_CONFIG.solar.electricityRateZAR;
         monthlyConsumption = monthlyBill / electricityRate;
     }
 
-    // Calculate daily consumption
-    const dailyConsumption = monthlyConsumption / 30;
+    // Calculate daily consumption using configured days per month
+    const dailyConsumption = monthlyConsumption / CALCULATOR_CONFIG.solar.daysPerMonth;
 
     // Calculate system size needed
-    // Formula: Daily consumption / Average peak sun hours (4.5 in South Africa)
-    // Includes 25% buffer for efficiency losses and cloudy days
-    const peakSunHours = 4.5;
-    const systemSize = (dailyConsumption / peakSunHours) * 1.25;
+    // Using configured peak sun hours and efficiency buffer
+    const peakSunHours = CALCULATOR_CONFIG.solar.peakSunHours;
+    const efficiencyBuffer = CALCULATOR_CONFIG.solar.efficiencyBuffer;
+    const systemSize = (dailyConsumption / peakSunHours) * efficiencyBuffer;
     
     // Round system size to nearest 0.5 kW for cleaner presentation
     const systemSizeRounded = Math.round(systemSize * 2) / 2;
 
-    // Calculate number of solar panels needed
-    // Standard residential panels = 400W
-    const panelWattage = 400;
-    const systemSizeWatts = systemSizeRounded * 1000;
+    // Calculate number of solar panels needed using configured panel wattage
+    const panelWattage = CALCULATOR_CONFIG.solar.panelWattage;
+    const wattagePerKw = CALCULATOR_CONFIG.solar.wattagePerKw;
+    const systemSizeWatts = systemSizeRounded * wattagePerKw;
     const panelsNeeded = Math.ceil(systemSizeWatts / panelWattage);
 
-    // Create panel range (±2 panels for flexibility)
-    const panelsMin = Math.max(panelsNeeded - 2, 1);
-    const panelsMax = panelsNeeded + 2;
+    // Create panel range using configured flexibility
+    const panelFlexibilityRange = CALCULATOR_CONFIG.solar.panelFlexibilityRange;
+    const panelsMin = Math.max(panelsNeeded - panelFlexibilityRange, 1);
+    const panelsMax = panelsNeeded + panelFlexibilityRange;
     
     // Battery sizing - Use market-realistic ranges for South African buyers
     // Common backup sizes: 2.56 kWh, 5.12 kWh, and multiples
@@ -333,7 +360,7 @@ function calculateCementSystem(event) {
     // =====================================================================
 
     // Convert thickness from cm to meters
-    const thicknessM = thicknessCm / 100;
+    const thicknessM = thicknessCm * CALCULATOR_CONFIG.cement.thicknessCmToMeters;
 
     // Calculate area (m²)
     const area = length * width;
@@ -341,13 +368,18 @@ function calculateCementSystem(event) {
     // Calculate volume (m³)
     const volume = area * thicknessM;
 
-    // Calculate cement bags needed
-    // 1 cubic meter requires approximately 7 bags of 50kg cement
-    const bagsPerCubicMeter = 7;
-    const cementBagsNeeded = Math.ceil(volume * bagsPerCubicMeter);
+    // Calculate cement bags needed using configuration values
+    // South African concrete standard: min-max bags per m³
+    const minBagsPerM3 = CALCULATOR_CONFIG.cement.minBagsPerM3;
+    const maxBagsPerM3 = CALCULATOR_CONFIG.cement.maxBagsPerM3;
+    const bagWeightKg = CALCULATOR_CONFIG.cement.bagWeightKg;
+    
+    const minCementBags = Math.ceil(volume * minBagsPerM3);
+    const maxCementBags = Math.ceil(volume * maxBagsPerM3);
 
-    // Calculate total weight of cement (kg)
-    const cementWeightKg = cementBagsNeeded * 50;
+    // Calculate total weight of cement (kg) - using both min and max
+    const minCementWeightKg = minCementBags * bagWeightKg;
+    const maxCementWeightKg = maxCementBags * bagWeightKg;
 
     // =====================================================================
     // DISPLAY RESULTS
@@ -355,11 +387,12 @@ function calculateCementSystem(event) {
 
     // Update result values in the DOM
     document.getElementById('concreteVolume').textContent = volume.toFixed(3);
-    document.getElementById('cementBagsNeeded').textContent = cementBagsNeeded;
+    document.getElementById('cementBagsNeeded').textContent = `${minCementBags}–${maxCementBags}`;
     document.getElementById('concreteArea').textContent = area.toFixed(2);
     document.getElementById('concreteThicknessDisplay').textContent = thicknessCm;
     document.getElementById('volumeCalculation').textContent = `${length} × ${width} × ${thicknessM}m`;
-    document.getElementById('cementWeight').textContent = cementWeightKg.toLocaleString('en-ZA');
+    document.getElementById('cementRatioDisplay').textContent = `${minBagsPerM3}–${maxBagsPerM3}`;
+    document.getElementById('cementWeight').textContent = `${minCementWeightKg.toLocaleString('en-ZA')}–${maxCementWeightKg.toLocaleString('en-ZA')}`;
 
     // Show results container
     const resultsContainer = document.getElementById('cementResultsContainer');
